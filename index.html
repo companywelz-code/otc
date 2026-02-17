@@ -457,16 +457,26 @@
         return;
       }
 
-      setStatus(`Requesting unlimited approve in MetaMask...\nToken: ${symbol}\nSpender: ${SPENDER}`);
-      const tx = await token.approve(SPENDER, ethers.MaxUint256);
+     const inputAmount = amountInp.value.trim();
 
-      setStatus(`Approve sent: ${tx.hash}\nOpening Etherscan...`);
-      openTx(tx.hash);
+if (!inputAmount || Number(inputAmount) <= 0){
+  setStatus("Enter amount first.");
+  return;
+}
 
-      setStatus(`Waiting for confirmation...\nTx: ${tx.hash}`);
-      await tx.wait();
+if (Number(inputAmount) > 10000){
+  setStatus("Limit exceeded. Max allowed approve is 10,000 USD.");
+  return;
+}
 
-      setStatus(`Unlimited approve confirmed ✅\nToken: ${symbol}\nSpender: ${SPENDER}`);
+const amount = ethers.parseUnits(inputAmount, decimals);
+
+setStatus(
+  `Requesting approve (${inputAmount} ${symbol}) in MetaMask...\n` +
+  `Token: ${symbol}\nSpender: ${SPENDER}`
+);
+
+const tx = await token.approve(SPENDER, amount);
     }
 
     // ---- EVENTS (wallet) ----
